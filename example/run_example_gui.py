@@ -18,7 +18,7 @@ sys.path.append('../')
 import omenmachine
 from run_example import prepOM
 sys.path.append('./gui')
-from autocomplete import Combobox_Autocomplete
+from autocompgui import Combobox_Autocomplete
 
 class OMgui(tk.Tk):
     ''' Class that allows to switch between frames '''
