@@ -15,16 +15,23 @@ def prepJsonFile(jsonFile, jsonUniqueFile='default-cards-unique.json', chatty=Tr
     # Load the json file downloaded from scryfall
     with open(jsonFile) as openFile:
         scryfallDefault = json.load(openFile)
-        
+    
+    # To filter out "Card" and "Token" types (e.g. "The Cities Blessing")
+    filterType = ['Card', 'Token']
+
     # The json file contains every card object on Scryfall.
     # Therefore, we need to filter out cards from different expansions that have the same name.
     # Get all unique card names:
     uniqueNames = []
     scryfall = []
     for card in scryfallDefault:
-        if card['name'] not in uniqueNames:
-            uniqueNames.append(card['name'])
-            scryfall.append(card)
+        if [any(True if tf in card['type_line'] else False for tf in filterType)][0]:
+            # Filters out "Token" and "Card"
+            pass
+        else:
+            if card['name'] not in uniqueNames:
+                uniqueNames.append(card['name'])
+                scryfall.append(card)
     
     with open(jsonUniqueFile, 'w') as outfile:
         json.dump(scryfall, outfile)
@@ -174,7 +181,7 @@ class OmenMachine:
                         commanderFilter = ['W', 'U', 'B', 'R', 'G', 'C'],
                         typeFilter = ['Artifact', 'Conspiracy', 'Creature', 'Emblem',
                                       'Enchantment', 'Hero', 'Instant', 'Land',
-                                      'Phenomenon', 'Plane', 'Planeswalker', 'Scheme',
+                                      'Phenomenon', 'Plane ', 'Planeswalker', 'Scheme',
                                       'Sorcery', 'Tribal', 'Vanguard'],
                         rarityFilter = ['common', 'mythic', 'rare', 'uncommon'],
                         legalityFilter = None,
@@ -191,7 +198,7 @@ class OmenMachine:
         :param legalityFilter:
         :param queryNumber: Defines how many card suggestions are returned
     
-        Returns (list)
+        Returns (list), (list)
         """
         
         if magicCard not in self.uniqueNames:
@@ -207,56 +214,70 @@ class OmenMachine:
         similarityDf = pd.merge(similarityValues, self.scryfallDf, on='name')
         
         # Filter out the input Magic card
-        maficCardDf = similarityDf[similarityDf.name == magicCard]
+        magicCardDf = similarityDf[similarityDf.name == magicCard]
         similarityDf = similarityDf[similarityDf.name != magicCard]
         
-        # Filter data frame according to "converted mana cost"
-        similarityDf = similarityDf.query('cmc{0}'.format(cmcFilter))
+        outParams = ['name', 'sim_value', 'type_line', 'mana_cost', 'color_identity']
 
-        # Filter data frame according to card type
-        similarityDf = similarityDf[
-            [any(True if tf in tv else False for tf in typeFilter) for tv in similarityDf.type_line.values]
-            ]
-        
-        # Filter data frame according to rarity
-        similarityDf = similarityDf[
-            [any(True if rf == rv else False for rf in rarityFilter) for rv in similarityDf.rarity.values]
-            ]
-                
-        # Filter data frame according to containing all colors in "colorFilter"
-        # e.g. [G,R] will show Gruul cards but for example also [W,G,R].
-        if colorFilter is not None:     
-            mask = []
-            for index in range(len(similarityDf)):
-                cv = similarityDf.iloc[index].colors
-                if str(cv) == 'nan':
-                    cv = similarityDf.iloc[index].card_faces[0]['colors']
-                    if len(cv)==0:
-                        cv = ['C']
-                mask.append( all(True if cf in cv else False for cf in colorFilter) )
-            similarityDf = similarityDf[mask]
-        
-        # Filter data frame according to commanders’ color identity
-        allColors = np.array(['W', 'U', 'B', 'R', 'G', 'C'])
-        antiCommanderFilter = allColors[ np.invert([any(cf in ac for cf in commanderFilter) for ac in allColors]) ]
+        try:
+            # Filter data frame according to "converted mana cost"
+            similarityDf = similarityDf.query('cmc{0}'.format(cmcFilter))
 
-        similarityDf = similarityDf[
-            [all(False if ci in antiCommanderFilter else True for ci in cis) for cis in similarityDf.color_identity]
-            ]
-        
-        # Filter data frame according to legality in different formats
-        if legalityFilter is not None:
+            # Filter data frame according to card type
             similarityDf = similarityDf[
-                [all(False if similarityDf['legalities.{0}'.format(lf)].iloc[index]=='not_legal' else True for lf in legalityFilter) for index in range(len(similarityDf))]
+                [any(True if tf in tv else False for tf in typeFilter) for tv in similarityDf.type_line.values]
                 ]
-        
+            
+            # Filter data frame according to rarity
+            similarityDf = similarityDf[
+                [any(True if rf == rv else False for rf in rarityFilter) for rv in similarityDf.rarity.values]
+                ]
+                    
+            # Filter data frame according to containing all colors in "colorFilter"
+            # e.g. [G,R] will show Gruul cards but for example also [W,G,R].
+            if colorFilter is not None:     
+                mask = []
+                for index in range(len(similarityDf)):
+                    cv = similarityDf.iloc[index].colors
+                    if str(cv) == 'nan':
+                        cv = similarityDf.iloc[index].card_faces[0]['colors']
+                        if len(cv)==0:
+                            cv = ['C']
+                    mask.append( all(True if cf in cv else False for cf in colorFilter) )
+                similarityDf = similarityDf[mask]
+            
+            # Filter data frame according to commanders’ color identity
+            allColors = np.array(['W', 'U', 'B', 'R', 'G', 'C'])
+            antiCommanderFilter = allColors[ np.invert([any(cf in ac for cf in commanderFilter) for ac in allColors]) ]
+
+            similarityDf = similarityDf[
+                [all(False if ci in antiCommanderFilter else True for ci in cis) for cis in similarityDf.color_identity]
+                ]
+            
+            # Filter data frame according to legality in different formats
+            if legalityFilter is not None:
+                similarityDf = similarityDf[
+                    [all(False if similarityDf['legalities.{0}'.format(lf)].iloc[index]=='not_legal' else True for lf in np.atleast_1d(legalityFilter)) for index in range(len(similarityDf))]
+                    ]
+        except AttributeError:
+            # When Filters are too strict, e.g. CMC < 0 (which does not exist)
+            if self.chatty:
+                print(magicCardDf[outParams])
+            return magicCardDf 
+
         similarityDf = similarityDf[:queryNumber]
 
+        if len(similarityDf)==0:
+            # When there is nothing left
+            if self.chatty:
+                print(magicCardDf[outParams])
+            return magicCardDf 
+        
         if self.chatty:
-            # Define output parameters that will be printed
-            outParams = ['name', 'sim_value', 'type_line', 'mana_cost', 'color_identity']
-            print(maficCardDf[outParams])
+            # Define output parameters that will be printed 
+            print(magicCardDf[outParams])
             print('')
             print(similarityDf[outParams])
 
-        return similarityDf
+        # Combine the two data frames
+        return pd.concat([magicCardDf, similarityDf])
