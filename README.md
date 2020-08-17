@@ -15,17 +15,12 @@ The output is a ranking of cards that are most similar to the input card in term
 
 ##  Graphical user interface
 
-|-|
 | Start screen |
-|-|
 | <img src="./example/gui/gui_demo_01.jpeg" width="250"> |
 | Selection |
-|-|
 | <img src="./example/gui/gui_demo_02.jpeg" width="250"> |
 | Results screen |
-|-|
 | <img src="./example/gui/gui_demo_03.jpeg" width="250"> |
-|-|
 
 ## Requirements
 
