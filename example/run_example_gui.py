@@ -20,6 +20,7 @@ from run_example import prepOM
 sys.path.append('./gui')
 from autocompgui import Combobox_Autocomplete
 
+
 class OMgui(tk.Tk):
     ''' Class that allows to switch between frames '''
     def __init__(self):
@@ -326,10 +327,6 @@ class QueryPage(tk.Frame):
         return entry
 
 
-
-
-
-
 class ResultPage(tk.Frame):
     def __init__(self, master):
         tk.Frame.__init__(self, master)
@@ -352,14 +349,7 @@ class ResultPage(tk.Frame):
 
         ii=0
         images = []
-        '''
-        for index, (name, scryUrl, imgUrl, simScore) in enumerate(zip(
-            df['name'].values,
-            df['scryfall_uri'].values,
-            df['image_uris.large'].values,
-            df['sim_value'].values
-            )):
-        '''
+
         for index, rowDf in df.iterrows():
             imgUrl = rowDf['image_uris.large']
 
@@ -383,37 +373,6 @@ class ResultPage(tk.Frame):
             images.append(image)
 
             ii+=1
-
-            '''
-            rawImg = urllib.request.urlopen(imgUrl).read()
-            img = Image.open(io.BytesIO(rawImg))
-
-            scaleFactor = .3
-            #w, h = img.size
-            # For a normal card it will be (672, 936)
-            # Speial Cards, e.g. a "Plane" will be forced to match this size
-            w, h = 672, 936
-            size = (np.int(w*scaleFactor), np.int(h*scaleFactor))
-            img = img.resize(size, Image.ANTIALIAS)
-
-            image = ImageTk.PhotoImage(img)
-            imgLabel = tk.Label(self, image=image, text="{0}: {1:.2f}".format(name, simScore), compound=tk.BOTTOM)
-            imgLabel.image = image
-            if ii != 0 and ii % 5 == 0: # do a line break every 5 columns
-                row+=1
-                ii=0
-            
-            imgLabel.grid(row=row, column=ii, sticky=tk.W+tk.E, columnspan=1, pady=15)
-
-            # Bind click event to image
-            imgLabel.bind('<Button-1>', lambda event, scryUrl=scryUrl: onImgClick(event, scryUrl))
-
-            # Keep the reference by appending to list
-            images.append(image)
-            
-            ii+=1
-            '''
-
 
         row+=1
 
