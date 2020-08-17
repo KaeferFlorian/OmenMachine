@@ -18,11 +18,11 @@ The output is a ranking of cards that are most similar to the input card in term
 | GUI |
 | - |
 | Start screen |
-| <img src="./example/gui/gui_demo_01.jpeg" width="250"> |
+| <img src="./example/gui/gui_demo_01.jpeg" width="500"> |
 | Selection |
-| <img src="./example/gui/gui_demo_02.jpeg" width="250"> |
+| <img src="./example/gui/gui_demo_02.jpeg" width="500"> |
 | Results screen |
-| <img src="./example/gui/gui_demo_03.jpeg" width="250"> |
+| <img src="./example/gui/gui_demo_03.jpeg" width="500"> |
 
 ## Requirements
 
