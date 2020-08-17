@@ -33,7 +33,7 @@ The output is a ranking of cards that are most similar to the input card in term
 * scikit-learn
 * re
 
-Optional for GUI:
+## Optional requirements for GUI
 * tkinter
 * urllib.parse
 * PIL
