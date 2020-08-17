@@ -29,8 +29,16 @@ The output is a ranking of cards that are most similar to the input card in term
 * Numpy
 * Pandas
 * JSON
+* joblib
 * scikit-learn
 * re
+
+Optional for GUI:
+* tkinter
+* urllib.parse
+* PIL
+* io
+* webbrowser
 
 ## Copyright
 
